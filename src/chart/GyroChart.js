@@ -3,7 +3,7 @@ import Plot from "react-plotly.js";
 
 function GyroChart() {
   const [data, setData] = useState({
-    time: ["00:00:00"],
+    time: [],
     YAW: [0],
     PITCH: [0],
     ROLL: [0],

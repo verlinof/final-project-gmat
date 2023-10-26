@@ -2,6 +2,8 @@ import "./App.css";
 import GyroChart from "./chart/GyroChart";
 import Navbar from "./components/Navbar";
 import VoltageChart from "./chart/VoltageChart";
+import PressureChart from "./chart/PressureChart";
+import AltitudeChart from "./chart/AltitudeChart";
 
 function App() {
   return (
@@ -19,8 +21,12 @@ function App() {
         <div className="w-1/3 p-2" id="chart-voltage">
           <VoltageChart />
         </div>
-        <div className="w-1/3 p-2" id="chart-pressure"></div>
-        <div className="w-1/3 p-2" id="chart-altitude"></div>
+        <div className="w-1/3 p-2" id="chart-pressure">
+          <PressureChart />
+        </div>
+        <div className="w-1/3 p-2" id="chart-altitude">
+          <AltitudeChart />
+        </div>
       </div>
     </>
   );
