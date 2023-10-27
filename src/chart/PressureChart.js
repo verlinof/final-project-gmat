@@ -17,14 +17,17 @@ function PressureChart() {
       const newPressure = [...data.pressure, (Math.random() * 360).toFixed(2)];
 
       if (now.getSeconds() % 30 === 0) {
-        newPressure[newPressure.length - 1] = 0;
+        setData({
+          time: [`${hh}:${mm}:${ss}`],
+          pressure: [0],
+        });
+      } else {
+        // Update data
+        setData({
+          time: newTime,
+          pressure: newPressure,
+        });
       }
-
-      // Update data
-      setData({
-        time: newTime,
-        pressure: newPressure,
-      });
     }, 1000);
 
     return () => clearInterval(interval);

@@ -17,14 +17,17 @@ function VoltageChart() {
       const newVoltage = [...data.voltage, (Math.random() * 360).toFixed(2)];
 
       if (now.getSeconds() % 30 === 0) {
-        newVoltage[newVoltage.length - 1] = 0;
+        setData({
+          time: [`${hh}:${mm}:${ss}`],
+          voltage: [0],
+        });
+      } else {
+        // Update data
+        setData({
+          time: newTime,
+          voltage: newVoltage,
+        });
       }
-
-      // Update data
-      setData({
-        time: newTime,
-        voltage: newVoltage,
-      });
     }, 1000);
 
     return () => clearInterval(interval);

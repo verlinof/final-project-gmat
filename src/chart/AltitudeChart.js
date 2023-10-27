@@ -17,14 +17,17 @@ function AltitudeChart() {
       const newAltitude = [...data.altitude, (Math.random() * 360).toFixed(2)];
 
       if (now.getSeconds() % 30 === 0) {
-        newAltitude[newAltitude.length - 1] = 0;
+        setData({
+          time: [`${hh}:${mm}:${ss}`],
+          altitude: [0],
+        });
+      } else {
+        // Update data
+        setData({
+          time: newTime,
+          altitude: newAltitude,
+        });
       }
-
-      // Update data
-      setData({
-        time: newTime,
-        altitude: newAltitude,
-      });
     }, 1000);
 
     return () => clearInterval(interval);
