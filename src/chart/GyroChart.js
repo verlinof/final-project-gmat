@@ -19,7 +19,6 @@ function GyroChart() {
         const messageReplace = message.replace(";", "");
         const messageSplit = messageReplace.split(",");
 
-        const now = new Date();
         const time = messageSplit[1].split(":");
         const hh = time[0];
         const mm = time[1];
@@ -28,13 +27,13 @@ function GyroChart() {
         const newYAW = [...data.YAW, parseFloat(messageSplit[2])];
         const newPITCH = [...data.PITCH, parseFloat(messageSplit[3])];
         const newROLL = [...data.ROLL, parseFloat(messageSplit[4])];
-        if (now.getSeconds() % 60 === 0) {
-          setData({
-            time: [`${hh}:${mm}:${ss}`],
-            YAW: [0],
-            PITCH: [0],
-            ROLL: [0],
-          });
+
+        console.log(newROLL);
+        if (newTime.length > 50) {
+          newTime.shift();
+          newYAW.shift();
+          newPITCH.shift();
+          newROLL.shift();
         } else {
           // Update data
           setData({

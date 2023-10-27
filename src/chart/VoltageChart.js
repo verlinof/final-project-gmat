@@ -17,7 +17,6 @@ function VoltageChart() {
         const messageReplace = message.replace(";", "");
         const messageSplit = messageReplace.split(",");
 
-        const now = new Date();
         const time = messageSplit[1].split(":");
         const hh = time[0];
         const mm = time[1];
@@ -25,11 +24,9 @@ function VoltageChart() {
         const newTime = [...data.time, `${hh}:${mm}:${ss}`];
         const newVoltage = [...data.voltage, parseFloat(messageSplit[7])];
 
-        if (now.getSeconds() % 60 === 0) {
-          setData({
-            time: [`${hh}:${mm}:${ss}`],
-            voltage: [0],
-          });
+        if (newTime.length > 50) {
+          newTime.shift();
+          newVoltage.shift();
         } else {
           // Update data
           setData({

@@ -17,7 +17,6 @@ function AltitudeChart() {
         const messageReplace = message.replace(";", "");
         const messageSplit = messageReplace.split(",");
 
-        const now = new Date();
         const time = messageSplit[1].split(":");
         const hh = time[0];
         const mm = time[1];
@@ -25,11 +24,9 @@ function AltitudeChart() {
         const newTime = [...data.time, `${hh}:${mm}:${ss}`];
         const newAltitude = [...data.altitude, parseFloat(messageSplit[9])];
 
-        if (now.getSeconds() % 60 === 0) {
-          setData({
-            time: [`${hh}:${mm}:${ss}`],
-            altitude: [0],
-          });
+        if (newTime.length > 50) {
+          newTime.shift();
+          newAltitude.shift();
         } else {
           // Update data
           setData({

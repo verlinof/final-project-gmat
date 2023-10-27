@@ -17,7 +17,6 @@ function PressureChart() {
         const messageReplace = message.replace(";", "");
         const messageSplit = messageReplace.split(",");
 
-        const now = new Date();
         const time = messageSplit[1].split(":");
         const hh = time[0];
         const mm = time[1];
@@ -25,13 +24,10 @@ function PressureChart() {
         const newTime = [...data.time, `${hh}:${mm}:${ss}`];
         const newPressure = [...data.pressure, parseFloat(messageSplit[8])];
 
-        if (now.getSeconds() % 60 === 0) {
-          setData({
-            time: [`${hh}:${mm}:${ss}`],
-            pressure: [0],
-          });
+        if (newTime.length > 50) {
+          newTime.shift();
+          newPressure.shift();
         } else {
-          // Update data
           setData({
             time: newTime,
             pressure: newPressure,
