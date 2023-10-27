@@ -1,36 +1,39 @@
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { io } from "socket.io-client";
 
 const Map = () => {
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
 
-  // Fungsi untuk menghasilkan koordinat latitude dan longitude secara acak
-  const getRandomCoordinates = () => {
-    const randomLatitude = (Math.random() - 0.5) * 180;
-    const randomLongitude = (Math.random() - 0.5) * 360;
-    setLatitude(randomLatitude);
-    setLongitude(randomLongitude);
-  };
+  const socket = io("https://gmat.haikalhilmi.my.id/");
+  socket.connect();
 
   useEffect(() => {
-    // Panggil fungsi getRandomCoordinates setiap detik
     const interval = setInterval(() => {
-      getRandomCoordinates();
+      socket.on("message", (message) => {
+        const messageReplace = message.replace(";", "");
+        const messageSplit = messageReplace.split(",");
+
+        const randomLatitude = parseFloat(messageSplit[5]);
+        const randomLongitude = parseFloat(messageSplit[6]);
+        setLatitude(randomLatitude);
+        setLongitude(randomLongitude);
+      });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [socket]);
 
   return (
     <>
-      <MapContainer center={[-7.770562351329754, 110.37774291534211]} zoom={18}>
+      <MapContainer center={[latitude, longitude]} zoom={18}>
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        <Marker position={[-7.770562351329754, 110.37774291534211]}>
+        <Marker position={[latitude, longitude]}>
           <Popup>
             Latitude: {latitude}
             <br />

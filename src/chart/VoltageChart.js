@@ -1,37 +1,47 @@
 import React, { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
+import { io } from "socket.io-client";
 
 function VoltageChart() {
+  const socket = io("https://gmat.haikalhilmi.my.id/");
+  socket.connect();
+
   const [data, setData] = useState({
     time: [],
-    voltage: [0],
+    voltage: [],
   });
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = new Date();
-      const hh = now.getHours().toString().padStart(2, "0");
-      const mm = now.getMinutes().toString().padStart(2, "0");
-      const ss = now.getSeconds().toString().padStart(2, "0");
-      const newTime = [...data.time, `${hh}:${mm}:${ss}`];
-      const newVoltage = [...data.voltage, (Math.random() * 360).toFixed(2)];
+      socket.on("message", (message) => {
+        const messageReplace = message.replace(";", "");
+        const messageSplit = messageReplace.split(",");
 
-      if (now.getSeconds() % 30 === 0) {
-        setData({
-          time: [`${hh}:${mm}:${ss}`],
-          voltage: [0],
-        });
-      } else {
-        // Update data
-        setData({
-          time: newTime,
-          voltage: newVoltage,
-        });
-      }
+        const now = new Date();
+        const time = messageSplit[1].split(":");
+        const hh = time[0];
+        const mm = time[1];
+        const ss = time[2];
+        const newTime = [...data.time, `${hh}:${mm}:${ss}`];
+        const newVoltage = [...data.voltage, parseFloat(messageSplit[7])];
+
+        if (now.getSeconds() % 60 === 0) {
+          setData({
+            time: [`${hh}:${mm}:${ss}`],
+            voltage: [0],
+          });
+        } else {
+          // Update data
+          setData({
+            time: newTime,
+            voltage: newVoltage,
+          });
+        }
+      });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [data]);
+  }, [data, socket]);
 
   return (
     <div>
