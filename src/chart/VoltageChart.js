@@ -2,64 +2,66 @@ import React, { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
 import { io } from "socket.io-client";
 
-function VoltageChart() {
-  const socket = io("https://gmat.haikalhilmi.my.id/");
-  socket.connect();
+const VoltageChart = () => {
+  const [data, setData] = useState([]);
 
-  const [data, setData] = useState({
-    time: [],
-    voltage: [],
-  });
+  useEffect(() => {
+    const socket = io("https://gmat.haikalhilmi.my.id/");
+
+    socket.on("message", (mess) => {
+      const dataArray = mess.split(",");
+      //Data waktu
+      const time = dataArray[1].split(":");
+      const hour = time[0];
+      const minute = time[1];
+      const second = time[2];
+      //Data waktu yang dah diformat
+      const timeFormat = `${hour}:${minute}:${second}`;
+      const voltage = parseFloat(dataArray[7]);
+      setData((prevData) => [...prevData, { voltage, timeFormat }]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      socket.on("message", (message) => {
-        const messageReplace = message.replace(";", "");
-        const messageSplit = messageReplace.split(",");
-
-        const time = messageSplit[1].split(":");
-        const hh = time[0];
-        const mm = time[1];
-        const ss = time[2];
-        const newTime = [...data.time, `${hh}:${mm}:${ss}`];
-        const newVoltage = [...data.voltage, parseFloat(messageSplit[7])];
-
-        if (newTime.length > 50) {
-          newTime.shift();
-          newVoltage.shift();
-        } else {
-          // Update data
-          setData({
-            time: newTime,
-            voltage: newVoltage,
-          });
+      setData((prevData) => {
+        if (prevData.length > 5) {
+          return prevData.slice(-15);
         }
+        return prevData;
       });
-    }, 1000);
+    }, 1000); // Run every second
 
     return () => clearInterval(interval);
-  }, [data, socket]);
+  }, []);
+
+  // Memisahkan data untuk visualisasi
+  const timeFormatData = data.map((item) => item.timeFormat);
+  const voltageData = data.map((item) => item.voltage);
 
   return (
-    <div>
-      <Plot
-        data={[
-          {
-            x: data.time,
-            y: data.voltage,
-            type: "scatter",
-            mode: "lines",
-            name: "VOLTAGE",
-          },
-        ]}
-        layout={{
-          width: 500,
-          height: 300,
-          title: "Data Voltage",
-        }}
-      />
-    </div>
+    <Plot
+      data={[
+        {
+          type: "scatter",
+          mode: "lines",
+          name: "VOLTAGE",
+          x: timeFormatData,
+          y: voltageData,
+          marker: { color: "blue" },
+        },
+      ]}
+      layout={{
+        width: 450,
+        height: 300,
+        title: "Voltage Chart",
+      }}
+    />
   );
-}
+};
 
 export default VoltageChart;

@@ -2,63 +2,66 @@ import React, { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
 import { io } from "socket.io-client";
 
-function PressureChart() {
-  const socket = io("https://gmat.haikalhilmi.my.id/");
-  socket.connect();
+const PressureChart = () => {
+  const [data, setData] = useState([]);
 
-  const [data, setData] = useState({
-    time: [],
-    pressure: [],
-  });
+  useEffect(() => {
+    const socket = io("https://gmat.haikalhilmi.my.id/");
+
+    socket.on("message", (mess) => {
+      const dataArray = mess.split(",");
+      //Data waktu
+      const time = dataArray[1].split(":");
+      const hour = time[0];
+      const minute = time[1];
+      const second = time[2];
+      //Data waktu yang dah diformat
+      const timeFormat = `${hour}:${minute}:${second}`;
+      const pressure = parseFloat(dataArray[8]);
+      setData((prevData) => [...prevData, { pressure, timeFormat }]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      socket.on("message", (message) => {
-        const messageReplace = message.replace(";", "");
-        const messageSplit = messageReplace.split(",");
-
-        const time = messageSplit[1].split(":");
-        const hh = time[0];
-        const mm = time[1];
-        const ss = time[2];
-        const newTime = [...data.time, `${hh}:${mm}:${ss}`];
-        const newPressure = [...data.pressure, parseFloat(messageSplit[8])];
-
-        if (newTime.length > 50) {
-          newTime.shift();
-          newPressure.shift();
-        } else {
-          setData({
-            time: newTime,
-            pressure: newPressure,
-          });
+      setData((prevData) => {
+        if (prevData.length > 5) {
+          return prevData.slice(-15);
         }
+        return prevData;
       });
-    }, 1000);
+    }, 1000); // Run every second
 
     return () => clearInterval(interval);
-  }, [data, socket]);
+  }, []);
+
+  // Memisahkan data untuk visualisasi
+  const timeFormatData = data.map((item) => item.timeFormat);
+  const pressureData = data.map((item) => item.pressure);
 
   return (
-    <div>
-      <Plot
-        data={[
-          {
-            x: data.time,
-            y: data.pressure,
-            type: "scatter",
-            mode: "lines",
-            name: "PRESSURE",
-          },
-        ]}
-        layout={{
-          width: 500,
-          height: 300,
-          title: "Data Pressure",
-        }}
-      />
-    </div>
+    <Plot
+      data={[
+        {
+          type: "scatter",
+          mode: "lines",
+          name: "PRESSURE",
+          x: timeFormatData,
+          y: pressureData,
+          marker: { color: "blue" },
+        },
+      ]}
+      layout={{
+        width: 450,
+        height: 300,
+        title: "Pressure Chart",
+      }}
+    />
   );
-}
+};
 
 export default PressureChart;

@@ -2,87 +2,86 @@ import React, { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
 import { io } from "socket.io-client";
 
-function GyroChart() {
-  const socket = io("https://gmat.haikalhilmi.my.id/");
-  socket.connect();
+const GyroChart = () => {
+  const [data, setData] = useState([]);
 
-  const [data, setData] = useState({
-    time: [],
-    YAW: [],
-    PITCH: [],
-    ROLL: [],
-  });
+  useEffect(() => {
+    const socket = io("https://gmat.haikalhilmi.my.id/");
+
+    socket.on("message", (mess) => {
+      const dataArray = mess.split(",");
+      //Data waktu
+      const time = dataArray[1].split(":");
+      const hour = time[0];
+      const minute = time[1];
+      const second = time[2];
+      //Data waktu yang dah diformat
+      const timeFormat = `${hour}:${minute}:${second}`;
+      const Yaw = parseFloat(dataArray[2]);
+      const Pitch = parseFloat(dataArray[3]);
+      const Roll = parseFloat(dataArray[4]);
+      setData((prevData) => [...prevData, { Yaw, Pitch, Roll, timeFormat }]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      socket.on("message", (message) => {
-        const messageReplace = message.replace(";", "");
-        const messageSplit = messageReplace.split(",");
-
-        const time = messageSplit[1].split(":");
-        const hh = time[0];
-        const mm = time[1];
-        const ss = time[2];
-        const newTime = [...data.time, `${hh}:${mm}:${ss}`];
-        const newYAW = [...data.YAW, parseFloat(messageSplit[2])];
-        const newPITCH = [...data.PITCH, parseFloat(messageSplit[3])];
-        const newROLL = [...data.ROLL, parseFloat(messageSplit[4])];
-
-        console.log(newROLL);
-        if (newTime.length > 50) {
-          newTime.shift();
-          newYAW.shift();
-          newPITCH.shift();
-          newROLL.shift();
-        } else {
-          // Update data
-          setData({
-            time: newTime,
-            YAW: newYAW,
-            PITCH: newPITCH,
-            ROLL: newROLL,
-          });
+      setData((prevData) => {
+        if (prevData.length > 5) {
+          return prevData.slice(-20);
         }
+        return prevData;
       });
-    }, 1000);
+    }, 1000); // Run every second
 
     return () => clearInterval(interval);
-  }, [data, socket]);
+  }, []);
+
+  // Memisahkan data untuk visualisasi
+  const timeFormatData = data.map((item) => item.timeFormat);
+  const yawData = data.map((item) => item.Yaw);
+  const pitchData = data.map((item) => item.Pitch);
+  const rollData = data.map((item) => item.Roll);
 
   return (
-    <div>
-      <Plot
-        data={[
-          {
-            x: data.time,
-            y: data.YAW,
-            type: "scatter",
-            mode: "lines",
-            name: "YAW",
-          },
-          {
-            x: data.time,
-            y: data.PITCH,
-            type: "scatter",
-            mode: "lines",
-            name: "PITCH",
-          },
-          {
-            x: data.time,
-            y: data.ROLL,
-            type: "scatter",
-            mode: "lines",
-            name: "ROLL",
-          },
-        ]}
-        layout={{
-          width: 700,
-          height: 300,
-          title: "Data Gyro",
-        }}
-      />
-    </div>
+    <Plot
+      data={[
+        {
+          type: "scatter",
+          mode: "lines",
+          name: "Yaw",
+          x: timeFormatData,
+          y: yawData,
+          marker: { color: "red" },
+        },
+        {
+          type: "scatter",
+          mode: "lines",
+          name: "Pitch",
+          x: timeFormatData,
+          y: pitchData,
+          marker: { color: "green" },
+        },
+        {
+          type: "scatter",
+          mode: "lines",
+          name: "Roll",
+          x: timeFormatData,
+          y: rollData,
+          marker: { color: "blue" },
+        },
+      ]}
+      layout={{
+        width: 700,
+        height: 300,
+        title: "Gyro Chart",
+      }}
+    />
   );
-}
+};
 
 export default GyroChart;

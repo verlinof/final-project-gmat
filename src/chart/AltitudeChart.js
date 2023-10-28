@@ -2,64 +2,67 @@ import React, { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
 import { io } from "socket.io-client";
 
-function AltitudeChart() {
-  const socket = io("https://gmat.haikalhilmi.my.id/");
-  socket.connect();
+const AltitudeChart = () => {
+  const [data, setData] = useState([]);
 
-  const [data, setData] = useState({
-    time: [],
-    altitude: [],
-  });
+  useEffect(() => {
+    const socket = io("https://gmat.haikalhilmi.my.id/");
+
+    socket.on("message", (mess) => {
+      const dataArray = mess.split(",");
+      //Data waktu
+      const time = dataArray[1].split(":");
+      const hour = time[0];
+      const minute = time[1];
+      const second = time[2];
+      //Data waktu yang dah diformat
+      const timeFormat = `${hour}:${minute}:${second}`;
+
+      const altitude = parseFloat(dataArray[9]);
+      setData((prevData) => [...prevData, { altitude, timeFormat }]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      socket.on("message", (message) => {
-        const messageReplace = message.replace(";", "");
-        const messageSplit = messageReplace.split(",");
-
-        const time = messageSplit[1].split(":");
-        const hh = time[0];
-        const mm = time[1];
-        const ss = time[2];
-        const newTime = [...data.time, `${hh}:${mm}:${ss}`];
-        const newAltitude = [...data.altitude, parseFloat(messageSplit[9])];
-
-        if (newTime.length > 50) {
-          newTime.shift();
-          newAltitude.shift();
-        } else {
-          // Update data
-          setData({
-            time: newTime,
-            altitude: newAltitude,
-          });
+      setData((prevData) => {
+        if (prevData.length > 5) {
+          return prevData.slice(-15);
         }
+        return prevData;
       });
-    }, 1000);
+    }, 1000); // Run every second
 
     return () => clearInterval(interval);
-  }, [data, socket]);
+  }, []);
+
+  // Memisahkan data untuk visualisasi
+  const timeFormatData = data.map((item) => item.timeFormat);
+  const altitudeData = data.map((item) => item.altitude);
 
   return (
-    <div>
-      <Plot
-        data={[
-          {
-            x: data.time,
-            y: data.altitude,
-            type: "scatter",
-            mode: "lines",
-            name: "ALTITUDE",
-          },
-        ]}
-        layout={{
-          width: 500,
-          height: 300,
-          title: "Data Altitude",
-        }}
-      />
-    </div>
+    <Plot
+      data={[
+        {
+          type: "scatter",
+          mode: "lines",
+          name: "ALTITUDE",
+          x: timeFormatData,
+          y: altitudeData,
+          marker: { color: "blue" },
+        },
+      ]}
+      layout={{
+        width: 450,
+        height: 300,
+        title: "Altitude Chart",
+      }}
+    />
   );
-}
+};
 
 export default AltitudeChart;
