@@ -20,10 +20,6 @@ const VoltageChart = () => {
       const voltage = parseFloat(dataArray[7]);
       setData((prevData) => [...prevData, { voltage, timeFormat }]);
     });
-
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
   useEffect(() => {
@@ -34,12 +30,11 @@ const VoltageChart = () => {
         }
         return prevData;
       });
-    }, 1000); // Run every second
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Memisahkan data untuk visualisasi
   const timeFormatData = data.map((item) => item.timeFormat);
   const voltageData = data.map((item) => item.voltage);
 

@@ -20,10 +20,6 @@ const PressureChart = () => {
       const pressure = parseFloat(dataArray[8]);
       setData((prevData) => [...prevData, { pressure, timeFormat }]);
     });
-
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
   useEffect(() => {
@@ -34,12 +30,11 @@ const PressureChart = () => {
         }
         return prevData;
       });
-    }, 1000); // Run every second
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Memisahkan data untuk visualisasi
   const timeFormatData = data.map((item) => item.timeFormat);
   const pressureData = data.map((item) => item.pressure);
 

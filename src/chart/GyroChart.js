@@ -22,10 +22,6 @@ const GyroChart = () => {
       const Roll = parseFloat(dataArray[4]);
       setData((prevData) => [...prevData, { Yaw, Pitch, Roll, timeFormat }]);
     });
-
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
   useEffect(() => {
@@ -36,12 +32,11 @@ const GyroChart = () => {
         }
         return prevData;
       });
-    }, 1000); // Run every second
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Memisahkan data untuk visualisasi
   const timeFormatData = data.map((item) => item.timeFormat);
   const yawData = data.map((item) => item.Yaw);
   const pitchData = data.map((item) => item.Pitch);

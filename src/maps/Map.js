@@ -6,14 +6,14 @@ import L from "leaflet";
 import icon from "../images/rocket-icon.png";
 
 const Map = () => {
-  const mapRef = useRef(null); // Ref untuk mengakses instance MapContainer
+  const mapRef = useRef(null);
 
-  // Custom Icon untuk Marker
+  // Custom Icon untuk Marker di leaflet
   const customIcon = new L.Icon({
-    iconUrl: icon, // Perbaiki ini, hilangkan kurung kurawal
-    iconRetinaUrl: icon, // Perbaiki ini, hilangkan kurung kurawal
+    iconUrl: icon,
+    iconRetinaUrl: icon,
     iconSize: [32, 32],
-    popupAnchor: [0, 0], // Perbaiki koordinatnya
+    popupAnchor: [0, 0],
     className: "leaflet-div-icon",
   });
 
@@ -35,7 +35,6 @@ const Map = () => {
         setLatitude(Latitude);
         setLongitude(Longitude);
 
-        // Mengakses instance MapContainer dan panning
         if (mapRef.current) {
           mapRef.current.setView(
             [Latitude, Longitude],

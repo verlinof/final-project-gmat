@@ -15,16 +15,12 @@ const AltitudeChart = () => {
       const hour = time[0];
       const minute = time[1];
       const second = time[2];
-      //Data waktu yang dah diformat
+      //Data waktu yang udah diformat
       const timeFormat = `${hour}:${minute}:${second}`;
 
       const altitude = parseFloat(dataArray[9]);
       setData((prevData) => [...prevData, { altitude, timeFormat }]);
     });
-
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
   useEffect(() => {
@@ -35,12 +31,11 @@ const AltitudeChart = () => {
         }
         return prevData;
       });
-    }, 1000); // Run every second
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Memisahkan data untuk visualisasi
   const timeFormatData = data.map((item) => item.timeFormat);
   const altitudeData = data.map((item) => item.altitude);
 
